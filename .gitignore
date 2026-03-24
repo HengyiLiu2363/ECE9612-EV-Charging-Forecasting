@@ -215,4 +215,5 @@ data/processed/*
 reports/figures/*
 reports/tables/*
 !reports/figures/.gitkeep
-!reports/tables/.gitkeep
+!reports/tables/.gitkeep.env
+data/raw/*.json
