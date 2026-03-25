@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 # Random Forest model and regression metrics
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-
+from sklearn.tree import plot_tree
 
 # Feature datasets created from the feature engineering step
 TRAIN_FILE = Path("data/processed/train_features.csv")
@@ -143,6 +143,42 @@ def plot_feature_importance(
 
     print(f"Saved feature importance plot to: {output_file}")
 
+def plot_sample_tree(
+    model: RandomForestRegressor,
+    feature_cols: list[str],
+    output_file: Path,
+    tree_index: int = 0,
+    max_depth: int = 3,
+) -> None:
+    """
+    Plot one sample decision tree from the Random Forest model.
+
+    tree_index chooses which tree to display.
+    max_depth is a presentation tuning knob so the tree stays readable.
+    """
+    FIGURE_DIR.mkdir(parents=True, exist_ok=True)
+
+    # Select one tree from the full forest
+    tree = model.estimators_[tree_index]
+
+    # Plot only a limited depth so the figure is not too crowded
+    plt.figure(figsize=(16, 8))
+    plot_tree(
+        tree,
+        feature_names=feature_cols,
+        filled=True,
+        rounded=True,
+        max_depth=max_depth,
+        fontsize=8,
+    )
+    plt.title(f"Sample Tree from Random Forest (tree_index={tree_index}, max_depth={max_depth})")
+    plt.tight_layout()
+
+    # Save the sample tree figure
+    plt.savefig(output_file, dpi=200)
+    plt.close()
+
+    print(f"Saved sample tree plot to: {output_file}")
 
 def main() -> None:
     """
@@ -222,6 +258,14 @@ def main() -> None:
         FIGURE_DIR / "random_forest_feature_importance.png",
     )
 
+    # Save one sample tree so we can visualize the structure of a single tree
+    plot_sample_tree(
+        model,
+        feature_cols,
+        FIGURE_DIR / "random_forest_sample_tree.png",
+        tree_index=0,
+        max_depth=3,
+    )
 
 if __name__ == "__main__":
     main()
