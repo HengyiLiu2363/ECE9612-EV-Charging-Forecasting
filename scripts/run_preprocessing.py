@@ -22,7 +22,7 @@ def main() -> None:
     preview_data(df)
 
     # Update these column names after inspecting the real dataset
-    datetime_columns = []
+    datetime_columns = ["connectiontime", "disconnecttime", "donechargingtime"]
 
     df_clean = basic_cleaning(df, datetime_columns=datetime_columns)
 
