@@ -15,9 +15,9 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.preprocessing import MinMaxScaler
 
 # TensorFlow / Keras for the LSTM model
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense
-from tensorflow.keras.callbacks import EarlyStopping
+from keras.models import Sequential
+from keras.layers import LSTM, Dense, Input
+from keras.callbacks import EarlyStopping
 
 
 # Input files from the chronological split step
@@ -169,9 +169,10 @@ def main() -> None:
 
     # Build a simple one-layer LSTM model
     model = Sequential([
-        LSTM(lstm_units, input_shape=(sequence_length, 1)),
-        Dense(1)
-    ])
+    Input(shape=(sequence_length, 1)),
+    LSTM(lstm_units),
+    Dense(1)
+])
 
     model.compile(optimizer="adam", loss="mse")
 
