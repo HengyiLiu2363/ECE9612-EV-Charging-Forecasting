@@ -41,11 +41,16 @@ def get_feature_columns() -> list[str]:
         "day_of_week",
         "month",
         "is_weekend",
-        "lag_1",
-        "lag_2",
-        "lag_24",
-        "lag_168",
-        "rolling_mean_24",
+        "session_lag_1",
+        "session_lag_2",
+        "session_lag_24",
+        "session_lag_168",
+        "session_rolling_mean_24",
+        "kwh_lag_1",
+        "kwh_lag_2",
+        "kwh_lag_24",
+        "kwh_lag_168",
+        "kwh_rolling_mean_24",
     ]
 
 
