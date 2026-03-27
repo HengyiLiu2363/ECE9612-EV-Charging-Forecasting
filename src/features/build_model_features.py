@@ -39,22 +39,32 @@ def add_time_features(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def add_lag_features(df: pd.DataFrame) -> pd.DataFrame:
+def add_session_lag_features(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Add lag-based forecasting features using past demand values.
+    Add lag-based features from historical session_count.
     """
     df = df.copy()
 
-    # Short-term lag
-    df["lag_1"] = df["session_count"].shift(1)
-    df["lag_2"] = df["session_count"].shift(2)
+    df["session_lag_1"] = df["session_count"].shift(1)
+    df["session_lag_2"] = df["session_count"].shift(2)
+    df["session_lag_24"] = df["session_count"].shift(24)
+    df["session_lag_168"] = df["session_count"].shift(168)
+    df["session_rolling_mean_24"] = df["session_count"].shift(1).rolling(24).mean()
 
-    # Daily and weekly seasonal lags
-    df["lag_24"] = df["session_count"].shift(24)
-    df["lag_168"] = df["session_count"].shift(168)
+    return df
 
-    # Rolling mean helps smooth noisy hourly demand
-    df["rolling_mean_24"] = df["session_count"].shift(1).rolling(24).mean()
+
+def add_kwh_lag_features(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Add lag-based features from historical total_kwh.
+    """
+    df = df.copy()
+
+    df["kwh_lag_1"] = df["total_kwh"].shift(1)
+    df["kwh_lag_2"] = df["total_kwh"].shift(2)
+    df["kwh_lag_24"] = df["total_kwh"].shift(24)
+    df["kwh_lag_168"] = df["total_kwh"].shift(168)
+    df["kwh_rolling_mean_24"] = df["total_kwh"].shift(1).rolling(24).mean()
 
     return df
 
@@ -64,7 +74,8 @@ def prepare_features(df: pd.DataFrame) -> pd.DataFrame:
     Build the full feature table used by the forecasting models.
     """
     df = add_time_features(df)
-    df = add_lag_features(df)
+    df = add_session_lag_features(df)
+    df = add_kwh_lag_features(df)
 
     # Drop rows where lag features are missing
     df = df.dropna().copy()
