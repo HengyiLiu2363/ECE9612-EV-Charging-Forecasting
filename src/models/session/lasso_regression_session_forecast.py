@@ -9,8 +9,8 @@ import pandas as pd
 # Use matplotlib for result visualization
 import matplotlib.pyplot as plt
 
-# Ridge Regression model and evaluation metrics
-from sklearn.linear_model import Ridge
+# Lasso Regression model and evaluation metrics
+from sklearn.linear_model import Lasso
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 
@@ -20,7 +20,7 @@ VAL_FILE = Path("data/processed/val_features.csv")
 TEST_FILE = Path("data/processed/test_features.csv")
 
 # Save result figures here for the report and presentation
-FIGURE_DIR = Path("reports/figures")
+FIGURE_DIR = Path("reports/figures/session")
 
 
 def load_data(file_path: Path) -> pd.DataFrame:
@@ -38,7 +38,7 @@ def load_data(file_path: Path) -> pd.DataFrame:
 
 def get_feature_columns() -> list[str]:
     """
-    Define the predictor columns used by the Ridge Regression model.
+    Define the predictor columns used by the Lasso Regression model.
 
     These are feature-selection tuning knobs.
     """
@@ -91,18 +91,18 @@ def plot_actual_vs_predicted(
     """
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
 
-    # Combine timestamps, actual values, and predictions into one plotting table
+    # Build a plotting table with timestamps, actual values, and predictions
     plot_df = df.copy()
     plot_df["actual"] = y_true.values
     plot_df["predicted"] = y_pred
 
-    # Limit the plot to a manageable number of points for readability
+    # Limit the plot to a cleaner time window
     plot_df = plot_df.iloc[:n_points]
 
     plt.figure(figsize=(12, 5))
     plt.plot(plot_df["hour"], plot_df["actual"], label="Actual")
     plt.plot(plot_df["hour"], plot_df["predicted"], label="Predicted")
-    plt.title(f"Ridge Regression: Actual vs Predicted ({dataset_name})")
+    plt.title(f"Lasso Regression: Actual vs Predicted ({dataset_name})")
     plt.xlabel("Time")
     plt.ylabel("Session Count")
     plt.legend()
@@ -115,9 +115,9 @@ def plot_actual_vs_predicted(
     print(f"Saved figure to: {output_file}")
 
 
-def plot_coefficients(model: Ridge, feature_cols: list[str], output_file: Path) -> None:
+def plot_coefficients(model: Lasso, feature_cols: list[str], output_file: Path) -> None:
     """
-    Plot the learned Ridge coefficients to compare feature influence.
+    Plot the learned Lasso coefficients to compare feature influence.
     """
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -128,7 +128,7 @@ def plot_coefficients(model: Ridge, feature_cols: list[str], output_file: Path) 
 
     plt.figure(figsize=(10, 5))
     plt.barh(coef_df["feature"], coef_df["coefficient"])
-    plt.title("Ridge Regression Coefficients")
+    plt.title("Lasso Regression Coefficients")
     plt.xlabel("Coefficient Value")
     plt.ylabel("Feature")
     plt.tight_layout()
@@ -142,7 +142,7 @@ def plot_coefficients(model: Ridge, feature_cols: list[str], output_file: Path) 
 
 def main() -> None:
     """
-    Train and evaluate the Ridge Regression forecasting model.
+    Train and evaluate the Lasso Regression forecasting model.
 
     The target variable is hourly session_count.
     """
@@ -153,9 +153,9 @@ def main() -> None:
     feature_cols = get_feature_columns()
     target_col = "session_count"
 
-    # This is the main Ridge tuning knob.
+    # This is the main Lasso tuning knob.
     # Larger alpha means stronger coefficient shrinkage.
-    alpha = 1.0
+    alpha = 0.001
 
     # Split each dataset into predictors and target
     X_train = train[feature_cols]
@@ -167,8 +167,8 @@ def main() -> None:
     X_test = test[feature_cols]
     y_test = test[target_col]
 
-    # Train the Ridge Regression model
-    model = Ridge(alpha=alpha)
+    # Train the Lasso Regression model
+    model = Lasso(alpha=alpha, max_iter=10000)
     model.fit(X_train, y_train)
 
     # Generate predictions on all datasets
@@ -176,7 +176,7 @@ def main() -> None:
     val_pred = model.predict(X_val)
     test_pred = model.predict(X_test)
 
-    print(f"Using Ridge alpha = {alpha}")
+    print(f"Using Lasso alpha = {alpha}")
 
     # Evaluate model performance
     evaluate_regression(y_train, train_pred, "Train")
@@ -189,7 +189,7 @@ def main() -> None:
         y_val,
         val_pred,
         "Validation",
-        FIGURE_DIR / "ridge_regression_val_actual_vs_pred.png",
+        FIGURE_DIR / "lasso_regression_val_actual_vs_pred.png",
         n_points=300,
     )
 
@@ -198,7 +198,7 @@ def main() -> None:
         y_test,
         test_pred,
         "Test",
-        FIGURE_DIR / "ridge_regression_test_actual_vs_pred.png",
+        FIGURE_DIR / "lasso_regression_test_actual_vs_pred.png",
         n_points=300,
     )
 
@@ -206,7 +206,7 @@ def main() -> None:
     plot_coefficients(
         model,
         feature_cols,
-        FIGURE_DIR / "ridge_regression_coefficients.png",
+        FIGURE_DIR / "lasso_regression_coefficients.png",
     )
 
 

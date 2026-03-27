@@ -9,10 +9,10 @@ import pandas as pd
 # Use matplotlib for result visualization
 import matplotlib.pyplot as plt
 
-# Random Forest model and regression metrics
-from sklearn.ensemble import RandomForestRegressor
+# Gradient Boosting model and regression metrics
+from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from sklearn.tree import plot_tree
+
 
 # Feature datasets created from the feature engineering step
 TRAIN_FILE = Path("data/processed/train_features.csv")
@@ -20,7 +20,7 @@ VAL_FILE = Path("data/processed/val_features.csv")
 TEST_FILE = Path("data/processed/test_features.csv")
 
 # Save result figures here for the report and presentation
-FIGURE_DIR = Path("reports/figures")
+FIGURE_DIR = Path("reports/figures/session")
 
 
 def load_data(file_path: Path) -> pd.DataFrame:
@@ -38,7 +38,7 @@ def load_data(file_path: Path) -> pd.DataFrame:
 
 def get_feature_columns() -> list[str]:
     """
-    Define the predictor columns used by the Random Forest model.
+    Define the predictor columns used by the Gradient Boosting model.
 
     These are feature-selection tuning knobs.
     """
@@ -102,7 +102,7 @@ def plot_actual_vs_predicted(
     plt.figure(figsize=(12, 5))
     plt.plot(plot_df["hour"], plot_df["actual"], label="Actual")
     plt.plot(plot_df["hour"], plot_df["predicted"], label="Predicted")
-    plt.title(f"Random Forest: Actual vs Predicted ({dataset_name})")
+    plt.title(f"Gradient Boosting: Actual vs Predicted ({dataset_name})")
     plt.xlabel("Time")
     plt.ylabel("Session Count")
     plt.legend()
@@ -116,12 +116,12 @@ def plot_actual_vs_predicted(
 
 
 def plot_feature_importance(
-    model: RandomForestRegressor,
+    model: GradientBoostingRegressor,
     feature_cols: list[str],
     output_file: Path,
 ) -> None:
     """
-    Plot feature importance to show which inputs matter most to the Random Forest model.
+    Plot feature importance to show which inputs matter most to the Gradient Boosting model.
     """
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -132,7 +132,7 @@ def plot_feature_importance(
 
     plt.figure(figsize=(10, 5))
     plt.barh(importance_df["feature"], importance_df["importance"])
-    plt.title("Random Forest Feature Importance")
+    plt.title("Gradient Boosting Feature Importance")
     plt.xlabel("Importance")
     plt.ylabel("Feature")
     plt.tight_layout()
@@ -143,46 +143,10 @@ def plot_feature_importance(
 
     print(f"Saved feature importance plot to: {output_file}")
 
-def plot_sample_tree(
-    model: RandomForestRegressor,
-    feature_cols: list[str],
-    output_file: Path,
-    tree_index: int = 0,
-    max_depth: int = 3,
-) -> None:
-    """
-    Plot one sample decision tree from the Random Forest model.
-
-    tree_index chooses which tree to display.
-    max_depth is a presentation tuning knob so the tree stays readable.
-    """
-    FIGURE_DIR.mkdir(parents=True, exist_ok=True)
-
-    # Select one tree from the full forest
-    tree = model.estimators_[tree_index]
-
-    # Plot only a limited depth so the figure is not too crowded
-    plt.figure(figsize=(16, 8))
-    plot_tree(
-        tree,
-        feature_names=feature_cols,
-        filled=True,
-        rounded=True,
-        max_depth=max_depth,
-        fontsize=8,
-    )
-    plt.title(f"Sample Tree from Random Forest (tree_index={tree_index}, max_depth={max_depth})")
-    plt.tight_layout()
-
-    # Save the sample tree figure
-    plt.savefig(output_file, dpi=200)
-    plt.close()
-
-    print(f"Saved sample tree plot to: {output_file}")
 
 def main() -> None:
     """
-    Train and evaluate the Random Forest forecasting model.
+    Train and evaluate the Gradient Boosting forecasting model.
 
     The target variable is hourly session_count.
     """
@@ -193,11 +157,10 @@ def main() -> None:
     feature_cols = get_feature_columns()
     target_col = "session_count"
 
-    # These are the main Random Forest tuning knobs.
-    # You can change them later to study model sensitivity.
+    # These are the main Gradient Boosting tuning knobs.
     n_estimators = 200
-    max_depth = 10
-    min_samples_split = 5
+    learning_rate = 0.05
+    max_depth = 3
     random_state = 42
 
     # Split each dataset into predictors and target
@@ -210,13 +173,12 @@ def main() -> None:
     X_test = test[feature_cols]
     y_test = test[target_col]
 
-    # Train the Random Forest model
-    model = RandomForestRegressor(
+    # Train the Gradient Boosting model
+    model = GradientBoostingRegressor(
         n_estimators=n_estimators,
+        learning_rate=learning_rate,
         max_depth=max_depth,
-        min_samples_split=min_samples_split,
         random_state=random_state,
-        n_jobs=-1,
     )
     model.fit(X_train, y_train)
 
@@ -225,7 +187,10 @@ def main() -> None:
     val_pred = model.predict(X_val)
     test_pred = model.predict(X_test)
 
-    print(f"Using Random Forest with n_estimators={n_estimators}, max_depth={max_depth}, min_samples_split={min_samples_split}")
+    print(
+        f"Using Gradient Boosting with n_estimators={n_estimators}, "
+        f"learning_rate={learning_rate}, max_depth={max_depth}"
+    )
 
     # Evaluate model performance
     evaluate_regression(y_train, train_pred, "Train")
@@ -238,7 +203,7 @@ def main() -> None:
         y_val,
         val_pred,
         "Validation",
-        FIGURE_DIR / "random_forest_val_actual_vs_pred.png",
+        FIGURE_DIR / "gradient_boosting_val_actual_vs_pred.png",
         n_points=300,
     )
 
@@ -247,7 +212,7 @@ def main() -> None:
         y_test,
         test_pred,
         "Test",
-        FIGURE_DIR / "random_forest_test_actual_vs_pred.png",
+        FIGURE_DIR / "gradient_boosting_test_actual_vs_pred.png",
         n_points=300,
     )
 
@@ -255,17 +220,9 @@ def main() -> None:
     plot_feature_importance(
         model,
         feature_cols,
-        FIGURE_DIR / "random_forest_feature_importance.png",
+        FIGURE_DIR / "gradient_boosting_feature_importance.png",
     )
 
-    # Save one sample tree so we can visualize the structure of a single tree
-    plot_sample_tree(
-        model,
-        feature_cols,
-        FIGURE_DIR / "random_forest_sample_tree.png",
-        tree_index=0,
-        max_depth=3,
-    )
 
 if __name__ == "__main__":
     main()

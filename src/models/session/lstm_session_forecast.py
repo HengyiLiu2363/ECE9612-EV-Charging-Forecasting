@@ -26,7 +26,7 @@ VAL_FILE = Path("data/processed/val_hourly.csv")
 TEST_FILE = Path("data/processed/test_hourly.csv")
 
 # Save result figures here for the report and presentation
-FIGURE_DIR = Path("reports/figures")
+FIGURE_DIR = Path("reports/figures/session")
 
 
 def load_data(file_path: Path) -> pd.DataFrame:
