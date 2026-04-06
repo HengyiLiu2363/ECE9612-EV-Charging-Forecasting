@@ -1,10 +1,30 @@
+"""
+Legacy helper for generic CSV cleaning.
+
+This script is not part of the final ACN forecasting pipeline, which uses:
+- src/data/process_acn_data.py
+- src/data/build_hourly_dataset.py
+- src/models/split_data.py
+- src/features/build_model_features.py
+"""
+
+import sys
 from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.data.load_data import load_csv_data, preview_data
 from src.data.preprocess import basic_cleaning
 
 
 def main() -> None:
+    print(
+        "Legacy preprocessing helper: the final ACN workflow uses "
+        "src/data/process_acn_data.py instead."
+    )
+
     raw_path = Path("data/raw")
     processed_path = Path("data/processed")
     processed_path.mkdir(parents=True, exist_ok=True)

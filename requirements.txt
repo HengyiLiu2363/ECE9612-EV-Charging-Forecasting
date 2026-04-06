@@ -92,12 +92,14 @@ rfc3987-syntax==1.1.0
 rpds-py==0.30.0
 scikit-learn==1.8.0
 scipy==1.17.1
+seaborn==0.13.2
 Send2Trash==2.1.0
 setuptools==82.0.1
 six==1.17.0
 soupsieve==2.8.3
 stack-data==0.6.3
 statsmodels==0.14.6
+tensorflow==2.21.0
 terminado==0.18.1
 threadpoolctl==3.6.0
 tinycss2==1.4.0
@@ -113,3 +115,4 @@ webencodings==0.5.1
 websocket-client==1.9.0
 widgetsnbextension==4.0.15
 xgboost==3.2.0
+keras==3.13.2
